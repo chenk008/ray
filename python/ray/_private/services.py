@@ -1441,8 +1441,9 @@ def start_raylet(redis_address,
 
     # Create the command that the Raylet will use to start workers.
     start_worker_command = [
-        sys.executable,
-        worker_path,
+        "python",
+        "-m",
+        "ray.workers.default_worker",
         f"--node-ip-address={node_ip_address}",
         "--node-manager-port=RAY_NODE_MANAGER_PORT_PLACEHOLDER",
         f"--object-store-name={plasma_store_name}",

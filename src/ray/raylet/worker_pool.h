@@ -121,6 +121,7 @@ class WorkerPool : public WorkerPoolInterface, public IOWorkerPoolInterface {
              int num_initial_python_workers_for_first_job,
              int maximum_startup_concurrency, int min_worker_port, int max_worker_port,
              const std::vector<int> &worker_ports,
+             const std::string temp_dir,
              std::shared_ptr<gcs::GcsClient> gcs_client,
              const WorkerCommandMap &worker_commands,
              std::function<void()> starting_worker_timeout_callback,
@@ -342,7 +343,8 @@ class WorkerPool : public WorkerPoolInterface, public IOWorkerPoolInterface {
   Process StartWorkerProcess(
       const Language &language, const rpc::WorkerType worker_type, const JobID &job_id,
       std::vector<std::string> dynamic_options = {},
-      std::unordered_map<std::string, std::string> override_environment_variables = {});
+      std::unordered_map<std::string, std::string> override_environment_variables = {},
+      const ResourceSet &worker_resource = ResourceSet());
 
   /// The implementation of how to start a new worker process with command arguments.
   /// The lifetime of the process is tied to that of the returned object,
@@ -354,6 +356,10 @@ class WorkerPool : public WorkerPoolInterface, public IOWorkerPoolInterface {
   /// \return An object representing the started worker process.
   virtual Process StartProcess(const std::vector<std::string> &worker_command_args,
                                const ProcessEnvironment &env);
+
+  virtual Process StartContainerProcess(const std::vector<std::string> &worker_command_args,
+                               const ProcessEnvironment &env,
+                               const ResourceSet &worker_resource = ResourceSet());
 
   /// Push an warning message to user if worker pool is getting to big.
   virtual void WarnAboutSize();
@@ -496,6 +502,7 @@ class WorkerPool : public WorkerPoolInterface, public IOWorkerPoolInterface {
   std::unique_ptr<std::queue<int>> free_ports_;
   /// The port Raylet uses for listening to incoming connections.
   int node_manager_port_ = 0;
+  const std::string temp_dir_ = "/tmp/ray";
   /// A client connection to the GCS.
   std::shared_ptr<gcs::GcsClient> gcs_client_;
   /// The callback that will be triggered once it times out to start a worker.
